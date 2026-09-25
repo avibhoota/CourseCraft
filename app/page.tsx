@@ -115,17 +115,21 @@ export default function Home() {
   const [pendingBlock, setPendingBlock] = useState<Meeting>({ day: "Fri", start: "14:00", end: "16:00" });
   const [result, setResult] = useState<SolverResult | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [saved, setSaved] = useState<RankedSchedule[]>(() => {
-    if (typeof window === "undefined") return [];
-    try {
-      const stored = window.localStorage.getItem("coursecraft-saved");
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [saved, setSaved] = useState<RankedSchedule[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      try {
+        const stored = window.localStorage.getItem("coursecraft-saved");
+        if (stored) setSaved(JSON.parse(stored));
+      } catch {
+        // Browser storage may be unavailable in privacy-restricted contexts.
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const generate = useCallback(async () => {
     if (!selectedCodes.length) { setError("Choose at least one required course."); return null; }
